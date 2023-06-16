@@ -1,0 +1,103 @@
+html {
+  background: rgb(27, 40, 56);
+  font-family: Arial, sans-serif;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+form {
+  background: rgb(23, 26, 33);
+  border-radius: 5px;
+  padding: 20px;
+  max-width: 400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+label {
+  font-size: 20px;
+  color: white;
+  display: block;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+input[type="checkbox"] {
+  display: none;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  height: 20px;
+  width: 37px;
+  margin-bottom: 0;
+  margin-left: 10px;
+}
+
+.switch input[type="checkbox"] + span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: pointer;
+  background-color: rgba(204, 204, 204, 0.5);
+  border-radius: 20px;
+  transition: background-color 0.3s;
+}
+
+.switch input[type="checkbox"]:checked + span {
+  background-color: #5cacef;
+}
+
+.switch input[type="checkbox"] + span::before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.switch input[type="checkbox"]:checked + span::before {
+  transform: translateX(16px);
+}
+
+button {
+  background: #5cacef;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #449bd4;
+}
+
+button[type="submit"] {
+  margin-top: 20px;
+}
+
+button[type="submit"]:hover {
+  background: #3579a8;
+}

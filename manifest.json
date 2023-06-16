@@ -1,0 +1,52 @@
+{
+  "manifest_version": 2,
+  "name": "Steam Extras",
+  "version": "1.0.0",
+  "description": "Adds extra features to the Steam website",
+  "icons": {
+    "48": "icons/icon_48.png",
+    "96": "icons/icon_96.png"
+  },
+  "permissions": [
+    "*://*.steampowered.com/*",
+    "*://*.steamcommunity.com/*",
+    "*://steampowered.com/*",
+    "*://steamcommunity.com/*",
+    "*://www.protondb.com/*",
+    "*://steamdb.info/*",
+    "storage",
+    "contextMenus"
+  ],
+  "options_ui": {
+    "page": "html/options.html",
+    "chrome_style": true
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.steampowered.com/*",
+        "*://*.steamcommunity.com/*",
+        "*://steampowered.com/*",
+        "*://steamcommunity.com/*"
+      ],
+      "js": ["js/steam.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "scripts": ["js/background.js"],
+    "persistent": true
+  },
+  "applications": {
+    "gecko": {
+      "id": "steam-extras@iipho3nix.me"
+    }
+  },
+  "browser_action": {
+    "default_icon": {
+      "48": "icons/icon_48.png",
+      "96": "icons/icon_96.png"
+    },
+    "default_title": "Steam Extras"
+  }
+}
