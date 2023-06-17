@@ -1,3 +1,5 @@
+<div align="center">
+
 # Steam Extras
 
 ## Features
@@ -48,3 +50,5 @@ Contributions are welcome! If you have any ideas, bug fixes, or improvements, pl
 ## Disclaimer
 
 Steam Extras is an unofficial extension and is not affiliated with or endorsed by Valve Corporation. Use it at your own risk.
+
+</div>
