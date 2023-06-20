@@ -60,5 +60,9 @@ const restoreOptions = () => {
   }
 };
 
-document.addEventListener("DOMContentLoaded", restoreOptions);
+document.addEventListener("DOMContentLoaded", () => {
+  restoreOptions();
+  saveOptions();
+});
+
 document.querySelector("form").addEventListener("submit", saveOptions);
