@@ -101,3 +101,19 @@ button[type="submit"] {
 button[type="submit"]:hover {
   background: #3579a8;
 }
+
+.clicked {
+  animation: clickAnim 200ms ease-in-out;
+}
+
+@keyframes clickAnim {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
