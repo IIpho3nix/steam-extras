@@ -21,7 +21,7 @@ const isSpecialKey = (event) => {
 };
 
 const appendNumbers = (num1, num2) =>
-  parseInt(num1.toString() + num2.toString().padEnd(2, "0"));
+  parseInt(num1.toString() + num2.toString().padStart(2, "0"));
 
 const addFunds = (amount, currency) => {
   document.getElementById("input_amount").value = amount;
