@@ -11,6 +11,7 @@
 - **Show ProtonDB Rating**: Show the ProtonDB rating for games.
 - **Scroll to Top**: Scroll to the top of a page with a single click.
 - **Show Lowest Price**: View the lowest price recorded for games on the store page.
+- **Download In Steam**: Add a download in steam button for owned games
 
 ## Installation
 

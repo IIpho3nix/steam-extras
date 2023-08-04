@@ -63,6 +63,7 @@ const retrieveSettings = () => {
       "showProtonDBRating",
       "scrollToTop",
       "showLowest",
+      "showDownloadButton",
     ];
 
     if (
@@ -100,7 +101,7 @@ retrieveSettings()
         `
         <div class="header_installsteam_btn header_installsteam_btn_gray">
             <a class="header_installsteam_btn_content" href="#" onclick="window.location.href = 'steam://openurl/' + window.location.href">
-                Open In Steam App						
+                Open In Steam
             </a>
         </div>
         ` + action_menu.innerHTML;
@@ -457,6 +458,42 @@ retrieveSettings()
 
             paragraph.insertAdjacentElement("afterend", breakLine);
           });
+      }
+    }
+
+    if (settings.showDownloadButton) {
+      if (
+        window.location.href.startsWith("https://store.steampowered.com/app/")
+      ) {
+        let appId = window.location.href.match(/\/app\/(\d+)\//)[1];
+
+        var dbtn = document.getElementsByClassName(
+          "game_area_already_owned_btn"
+        )[0];
+
+        if (dbtn != null) {
+          var actionList = document.getElementById("queueActionsCtn");
+
+          const parentDiv = document.createElement("div");
+          parentDiv.classList.add("queue_control_button");
+
+          const childDiv = document.createElement("div");
+          childDiv.classList.add("btnv6_blue_hoverfade", "btn_medium");
+
+          const spanElement = document.createElement("span");
+
+          spanElement.innerText = "Download in Steam";
+
+          childDiv.appendChild(spanElement);
+
+          parentDiv.appendChild(childDiv);
+
+          actionList.prepend(parentDiv);
+
+          parentDiv.addEventListener("click", () => {
+            window.location.href = "steam://install/" + appId;
+          });
+        }
       }
     }
 
