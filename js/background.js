@@ -108,3 +108,34 @@ const handleContextMenuClick = (info, tab) => {
     searchInProtonDB(info.selectionText);
   }
 };
+
+if (typeof browser !== "undefined" && browser.runtime) {
+  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    handleMessage(message, sender, sendResponse);
+    return true;
+  });
+}
+
+if (typeof chrome !== "undefined" && chrome.runtime) {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    handleMessage(message, sender, sendResponse);
+    return true;
+  });
+}
+
+function handleMessage(message, sender, sendResponse) {
+  if (message.action === "fetchData") {
+    const { url, options } = message;
+
+    fetch(url, options)
+      .then((response) => response.json())
+      .then((data) => {
+        sendResponse({ success: true, data: data });
+      })
+      .catch((error) => {
+        sendResponse({ success: false, error: error });
+      });
+
+    return true;
+  }
+}

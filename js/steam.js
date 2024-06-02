@@ -36,6 +36,32 @@ const makeReadable = (num, intSep = ",", floatSep = ".") => {
     .replaceAll(",", intSep);
 };
 
+const backgroundFetch = (url, options) => {
+  return new Promise((resolve, reject) => {
+    if (typeof browser !== "undefined" && browser.runtime) {
+      browser.runtime.sendMessage({ action: "fetchData", url: url, options: options }, (response) => {
+        if (response && response.success) {
+          resolve(response.data);
+        } else {
+          reject(response.error);
+        }
+      });
+    } else if (typeof chrome !== "undefined" && chrome.runtime) {
+      chrome.runtime.sendMessage({ action: "fetchData", url: url, options: options }, (response) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError.message);
+        } else if (response && response.success) {
+          resolve(response.data);
+        } else {
+          reject(response.error);
+        }
+      });
+    } else {
+      reject("Runtime environment not supported");
+    }
+  });
+};
+
 const getTierColor = (tier) => {
   switch (tier) {
     case "platinum":
@@ -229,14 +255,13 @@ retrieveSettings()
           "&currency=" +
           finalCurrency;
 
-        fetch(requestUrl, {
+        backgroundFetch(requestUrl, {
           credentials: "omit",
           headers: {
             Accept: "application/json",
             "X-Requested-With": "SteamDB",
           },
         })
-          .then((frespone) => frespone.json())
           .then((frespone) => {
             if (frespone.success) {
               const element = document.querySelector(".game_area_purchase");
@@ -463,11 +488,10 @@ retrieveSettings()
       ) {
         let appId = window.location.href.match(/\/app\/(\d+)\//)[1];
         let requestUrl =
-          "http://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v0001/?appid=" +
+          "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v0001/?appid=" +
           appId;
 
-        fetch(requestUrl)
-          .then((frespone) => frespone.json())
+        backgroundFetch(requestUrl)
           .then((frespone) => {
             let plramount = makeReadable(frespone.response.player_count);
 
@@ -534,8 +558,7 @@ retrieveSettings()
           appId +
           ".json";
 
-        fetch(requestUrl)
-          .then((frespone) => frespone.json())
+        backgroundFetch(requestUrl)
           .then((frespone) => {
             const trending = frespone.trendingTier;
             const tier = frespone.tier;
