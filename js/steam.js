@@ -372,7 +372,6 @@ retrieveSettings()
           input2.placeholder = "Minor Currency";
           input2.type = "number";
           input2.min = "0";
-          input2.max = "99";
           input2.step = "1";
           input2.style.backgroundColor = "#2b4865";
           input2.style.border = "none";
@@ -381,6 +380,8 @@ retrieveSettings()
           input2.style.fontSize = "16px";
           input2.style.marginBottom = "10px";
           input2.style.borderRadius = "4px";
+
+          const breakline2 = document.createElement("br");
 
           const button = document.createElement("button");
           button.textContent = "Add funds";
@@ -447,6 +448,7 @@ retrieveSettings()
           container.appendChild(breakline);
           container.appendChild(input1);
           container.appendChild(input2);
+          container.appendChild(breakline2);
           container.appendChild(button);
 
           let pricesUser = document.getElementById("prices_user");

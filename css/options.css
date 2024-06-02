@@ -81,25 +81,31 @@ input[type="checkbox"] {
   transform: translateX(16px);
 }
 
-button {
+.saveButton {
+  text-shadow: none;
   background: #5cacef;
   color: white;
   border: none;
+  border-color: transparent;
   padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
-}
-
-button:hover {
-  background: #449bd4;
-}
-
-button[type="submit"] {
+  outline: none;
+  box-shadow: none;
   margin-top: 20px;
+  font-family: Arial, sans-serif;
 }
 
-button[type="submit"]:hover {
-  background: #3579a8;
+.saveButton:hover {
+  background: #3579a8 !important;
+  color: white !important;
+  box-shadow: none !important;
+}
+
+.saveButton:focus {
+  background: #3579a8 !important;
+  color: white !important;
+  box-shadow: none !important;
 }
 
 .clicked {
