@@ -250,7 +250,7 @@ retrieveSettings()
         }
 
         let requestUrl =
-          "https://steamdb.info/api/ExtensionGetPrice/?appid=" +
+          "https://steamdb.info/api/ExtensionAppPrice/?appid=" +
           appId +
           "&currency=" +
           finalCurrency;
@@ -273,15 +273,20 @@ retrieveSettings()
 
               h1.textContent =
                 "Lowest recorded price: " +
-                frespone.data.lowest.price +
+                frespone.data.p +
                 " at " +
-                frespone.data.lowest.discount +
+                frespone.data.d +
                 "%";
 
               div.appendChild(h1);
 
               const p = document.createElement("p");
-              p.innerText = "Recorded on " + frespone.data.lowest.date;
+              let date = new Date(frespone.data.t * 1000)
+              let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+              var year = date.getFullYear();
+              var month = months[date.getMonth()];
+              var day = date.getDate();
+              p.innerText = "Recorded on " + day + ' ' + month + ' ' + year;
               div.appendChild(p);
 
               if (fallback) {
