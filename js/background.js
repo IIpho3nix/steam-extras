@@ -1,141 +1,120 @@
 const openNewTab = (url) => {
-  if (typeof browser !== "undefined" && browser.tabs) {
-    browser.tabs.create({ url });
-  } else if (typeof chrome !== "undefined" && chrome.tabs) {
-    chrome.tabs.create({ url });
-  }
+  const api = typeof browser !== "undefined" ? browser : chrome;
+  api.tabs.create({ url });
 };
 
-if (typeof browser !== "undefined" && browser.browserAction) {
-  browser.browserAction.onClicked.addListener((tab) => {
-    browser.tabs.create({ url: "html/options.html" });
-  });
-} else if (typeof chrome !== "undefined" && chrome.browserAction) {
-  chrome.browserAction.onClicked.addListener((tab) => {
-    chrome.tabs.create({ url: "html/options.html" });
-  });
-}
+const api = typeof browser !== "undefined" ? browser : chrome;
 
-if (typeof browser !== "undefined" && browser.contextMenus) {
-  browser.contextMenus.create({
-    id: "extensionContextMenu",
-    title: "Steam Search",
-    contexts: ["selection"],
-  });
-} else if (typeof chrome !== "undefined" && chrome.contextMenus) {
-  chrome.contextMenus.create({
-    id: "extensionContextMenu",
-    title: "Steam Search",
-    contexts: ["selection"],
-  });
-}
+api.browserAction.onClicked.addListener(() => {
+  api.tabs.create({ url: "html/options.html" });
+});
 
-if (typeof browser !== "undefined" && browser.contextMenus) {
-  browser.contextMenus.create({
-    id: "searchSteam",
-    title: "Search in Steam",
-    contexts: ["selection"],
-    parentId: "extensionContextMenu",
-  });
-  browser.contextMenus.create({
-    id: "searchSteamDB",
-    title: "Search in SteamDB",
-    contexts: ["selection"],
-    parentId: "extensionContextMenu",
-  });
-  browser.contextMenus.create({
-    id: "searchProtonDB",
-    title: "Search in ProtonDB",
-    contexts: ["selection"],
-    parentId: "extensionContextMenu",
-  });
-} else if (typeof chrome !== "undefined" && chrome.contextMenus) {
-  chrome.contextMenus.create({
-    id: "searchSteam",
-    title: "Search in Steam",
-    contexts: ["selection"],
-    parentId: "extensionContextMenu",
-  });
-  chrome.contextMenus.create({
-    id: "searchSteamDB",
-    title: "Search in SteamDB",
-    contexts: ["selection"],
-    parentId: "extensionContextMenu",
-  });
-  chrome.contextMenus.create({
-    id: "searchProtonDB",
-    title: "Search in ProtonDB",
-    contexts: ["selection"],
-    parentId: "extensionContextMenu",
-  });
-}
+api.contextMenus.create({
+  id: "extensionContextMenu",
+  title: "Steam Search",
+  contexts: ["selection"],
+});
 
-if (typeof browser !== "undefined" && browser.contextMenus) {
-  browser.contextMenus.onClicked.addListener((info, tab) =>
-    handleContextMenuClick(info, tab)
-  );
-} else if (typeof chrome !== "undefined" && chrome.contextMenus) {
-  chrome.contextMenus.onClicked.addListener((info, tab) =>
-    handleContextMenuClick(info, tab)
-  );
-}
+api.contextMenus.create({
+  id: "searchSteam",
+  parentId: "extensionContextMenu",
+  title: "Search in Steam",
+  contexts: ["selection"],
+});
 
-const searchInSteam = (selectionText) => {
-  const searchUrl =
-    "https://store.steampowered.com/search/?term=" +
-    encodeURIComponent(selectionText);
-  openNewTab(searchUrl);
-};
+api.contextMenus.create({
+  id: "searchSteamDB",
+  parentId: "extensionContextMenu",
+  title: "Search in SteamDB",
+  contexts: ["selection"],
+});
 
-const searchInSteamDB = (selectionText) => {
-  const searchUrl =
-    "https://steamdb.info/search/?a=app&q=" + encodeURIComponent(selectionText);
-  openNewTab(searchUrl);
-};
+api.contextMenus.create({
+  id: "searchProtonDB",
+  parentId: "extensionContextMenu",
+  title: "Search in ProtonDB",
+  contexts: ["selection"],
+});
 
-const searchInProtonDB = (selectionText) => {
-  const searchUrl =
-    "https://www.protondb.com/search?q=" + encodeURIComponent(selectionText);
-  openNewTab(searchUrl);
-};
+api.contextMenus.onClicked.addListener((info) => {
+  const text = info.selectionText;
 
-const handleContextMenuClick = (info, tab) => {
   if (info.menuItemId === "searchSteam") {
-    searchInSteam(info.selectionText);
-  } else if (info.menuItemId === "searchSteamDB") {
-    searchInSteamDB(info.selectionText);
-  } else if (info.menuItemId === "searchProtonDB") {
-    searchInProtonDB(info.selectionText);
+    openNewTab(
+      "https://store.steampowered.com/search/?term=" + encodeURIComponent(text),
+    );
+  }
+
+  if (info.menuItemId === "searchSteamDB") {
+    openNewTab(
+      "https://steamdb.info/search/?a=app&q=" + encodeURIComponent(text),
+    );
+  }
+
+  if (info.menuItemId === "searchProtonDB") {
+    openNewTab("https://www.protondb.com/search?q=" + encodeURIComponent(text));
+  }
+});
+
+api.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  handleMessage(message, sendResponse);
+  return true;
+});
+
+let ITAD_API_KEY = "";
+
+const loadApiKey = () => {
+  if (typeof browser !== "undefined" && browser.storage?.sync) {
+    browser.storage.sync.get(["isthereanydealApiKey"]).then((result) => {
+      ITAD_API_KEY = result.isthereanydealApiKey || "";
+    });
+  } else if (typeof chrome !== "undefined" && chrome.storage?.sync) {
+    chrome.storage.sync.get(["isthereanydealApiKey"], (result) => {
+      ITAD_API_KEY = result.isthereanydealApiKey || "";
+    });
   }
 };
 
-if (typeof browser !== "undefined" && browser.runtime) {
-  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    handleMessage(message, sender, sendResponse);
-    return true;
+loadApiKey();
+
+if (chrome?.storage?.onChanged) {
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "sync" && changes.isthereanydealApiKey) {
+      ITAD_API_KEY = changes.isthereanydealApiKey.newValue || "";
+    }
   });
 }
 
-if (typeof chrome !== "undefined" && chrome.runtime) {
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    handleMessage(message, sender, sendResponse);
-    return true;
-  });
-}
+function handleMessage(message, sendResponse) {
+  if (message.action === "itadFetch") {
+    (async () => {
+      try {
+        if (!ITAD_API_KEY) {
+          sendResponse({ success: false, error: "ITAD API key not set" });
+          return;
+        }
 
-function handleMessage(message, sender, sendResponse) {
+        const url = new URL(message.url);
+        url.searchParams.set("key", ITAD_API_KEY);
+
+        const response = await fetch(url.toString(), message.options || {});
+        const data = await response.json();
+
+        sendResponse({ success: true, data });
+      } catch (e) {
+        sendResponse({ success: false, error: e.toString() });
+      }
+    })();
+
+    return;
+  }
+
   if (message.action === "fetchData") {
-    const { url, options } = message;
+    fetch(message.url, message.options || {})
+      .then((r) => r.json())
+      .then((data) => sendResponse({ success: true, data }))
+      .catch((err) => sendResponse({ success: false, error: err.toString() }));
 
-    fetch(url, options)
-      .then((response) => response.json())
-      .then((data) => {
-        sendResponse({ success: true, data: data });
-      })
-      .catch((error) => {
-        sendResponse({ success: false, error: error });
-      });
-
-    return true;
+    return;
   }
 }

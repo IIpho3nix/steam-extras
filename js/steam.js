@@ -36,24 +36,31 @@ const makeReadable = (num, intSep = ",", floatSep = ".") => {
     .replaceAll(",", intSep);
 };
 
-const backgroundFetch = (url, options) => {
+const backgroundFetch = (url, options = {}) => {
   return new Promise((resolve, reject) => {
+    const payload = {
+      action: options.action || "fetchData",
+      url,
+      options,
+      meta: options.meta || {},
+    };
+
     if (typeof browser !== "undefined" && browser.runtime) {
-      browser.runtime.sendMessage({ action: "fetchData", url: url, options: options }, (response) => {
+      browser.runtime.sendMessage(payload, (response) => {
         if (response && response.success) {
           resolve(response.data);
         } else {
-          reject(response.error);
+          reject(response?.error || "Unknown error");
         }
       });
     } else if (typeof chrome !== "undefined" && chrome.runtime) {
-      chrome.runtime.sendMessage({ action: "fetchData", url: url, options: options }, (response) => {
+      chrome.runtime.sendMessage(payload, (response) => {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError.message);
         } else if (response && response.success) {
           resolve(response.data);
         } else {
-          reject(response.error);
+          reject(response?.error || "Unknown error");
         }
       });
     } else {
@@ -119,6 +126,13 @@ const retrieveSettings = () => {
   });
 };
 
+function symbolizeCurrency(amount, currencyCode) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currencyCode,
+  }).format(amount);
+}
+
 retrieveSettings()
   .then((settings) => {
     if (settings.openInSteam) {
@@ -179,133 +193,92 @@ retrieveSettings()
       if (
         window.location.href.startsWith("https://store.steampowered.com/app/")
       ) {
-        let appId = window.location.href.match(/\/app\/(\d+)\//)[1];
+        const appId = window.location.href.match(/\/app\/(\d+)\//)[1];
 
-        const currencyElement = document.querySelector(
-          'meta[itemprop="priceCurrency"]'
+        const fallback = !document.querySelector(
+          'meta[itemprop="priceCurrency"]',
         );
-        const currency = currencyElement ? currencyElement.content : null;
-        const fallback = !currency;
 
-        let finalCurrency = currency || "USD";
+        (async () => {
+          try {
+            const mapRes = await backgroundFetch(
+              `https://api.isthereanydeal.com/games/lookup/v1?appid=${appId}`,
+              { action: "itadFetch" },
+            );
 
-        if (finalCurrency === "USD") {
-          const script = document.evaluate(
-            '//script[contains(text(), "EnableSearchSuggestions")]',
-            document,
-            null,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null
-          ).singleNodeValue;
+            if (!mapRes?.found || !mapRes?.game?.id) return;
 
-          const country = script?.textContent.match(
-            /EnableSearchSuggestions\(.+?'(?<cc>[A-Z]{2})',/
-          )?.groups?.cc;
+            const itadId = mapRes.game.id;
 
-          const countryToCurrency = {
-            AZ: "USD-CIS",
-            AM: "USD-CIS",
-            BY: "USD-CIS",
-            GE: "USD-CIS",
-            KG: "USD-CIS",
-            MD: "USD-CIS",
-            TJ: "USD-CIS",
-            TM: "USD-CIS",
-            UZ: "USD-CIS",
-            BD: "USD-SASIA",
-            BT: "USD-SASIA",
-            NP: "USD-SASIA",
-            PK: "USD-SASIA",
-            LK: "USD-SASIA",
-            AR: "USD-LATAM",
-            BO: "USD-LATAM",
-            BZ: "USD-LATAM",
-            EC: "USD-LATAM",
-            GT: "USD-LATAM",
-            GY: "USD-LATAM",
-            HN: "USD-LATAM",
-            NI: "USD-LATAM",
-            PA: "USD-LATAM",
-            PY: "USD-LATAM",
-            SR: "USD-LATAM",
-            SV: "USD-LATAM",
-            VE: "USD-LATAM",
-            BH: "USD-MENA",
-            DZ: "USD-MENA",
-            EG: "USD-MENA",
-            IQ: "USD-MENA",
-            JO: "USD-MENA",
-            LB: "USD-MENA",
-            LY: "USD-MENA",
-            MA: "USD-MENA",
-            OM: "USD-MENA",
-            PS: "USD-MENA",
-            SD: "USD-MENA",
-            TN: "USD-MENA",
-            TR: "USD-MENA",
-            YE: "USD-MENA",
-          };  
+            const priceRes = await backgroundFetch(
+              `https://api.isthereanydeal.com/games/overview/v2`,
+              {
+                action: "itadFetch",
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify([itadId]),
+              },
+            );
 
-          finalCurrency = countryToCurrency[country] || finalCurrency;
-        }
+            const gamePrices = priceRes?.prices?.[0];
+            if (!gamePrices) return;
 
-        let requestUrl =
-          "https://steamdb.info/api/ExtensionAppPrice/?appid=" +
-          appId +
-          "&currency=" +
-          finalCurrency;
+            const lowest = gamePrices.lowest;
 
-        backgroundFetch(requestUrl, {
-          credentials: "omit",
-          headers: {
-            Accept: "application/json",
-            "X-Requested-With": "SteamDB",
-          },
-        })
-          .then((frespone) => {
-            if (frespone.success) {
-              const element = document.querySelector(".game_area_purchase");
+            const element = document.querySelector(".game_area_purchase");
+            if (!element) return;
 
-              const div = document.createElement("div");
-              div.classList.add("game_area_purchase_game");
+            const div = document.createElement("div");
+            div.classList.add("game_area_purchase_game");
 
-              const h1 = document.createElement("h1");
+            const h1 = document.createElement("h1");
+            h1.textContent = `Lowest recorded price: ${symbolizeCurrency(lowest.price.amount, lowest.price.currency)} (${lowest.cut}% off)`;
 
-              h1.textContent =
-                "Lowest recorded price: " +
-                frespone.data.p +
-                " at " +
-                frespone.data.d +
-                "%";
+            const p = document.createElement("p");
 
-              div.appendChild(h1);
+            const date = new Date(lowest.timestamp);
 
-              const p = document.createElement("p");
-              let date = new Date(frespone.data.t * 1000)
-              let months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-              var year = date.getFullYear();
-              var month = months[date.getMonth()];
-              var day = date.getDate();
-              p.innerText = "Recorded on " + day + ' ' + month + ' ' + year;
-              div.appendChild(p);
+            const months = [
+              "Jan",
+              "Feb",
+              "Mar",
+              "Apr",
+              "May",
+              "Jun",
+              "Jul",
+              "Aug",
+              "Sep",
+              "Oct",
+              "Nov",
+              "Dec",
+            ];
 
-              if (fallback) {
-                const p2 = document.createElement("p");
-                p2.innerText =
-                  "Fallen back to USD since the extension wasnt able to determine the currency";
-                div.appendChild(p2);
-              }
+            p.innerText = `Recorded around ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 
-              element.insertBefore(div, element.firstChild);
+            div.appendChild(h1);
+            div.appendChild(p);
+
+            if (fallback) {
+              const p2 = document.createElement("p");
+              p2.innerText =
+                "Currency detection failed, showing default pricing.";
+              div.appendChild(p2);
             }
-          });
+
+            element.insertBefore(div, element.firstChild);
+          } catch (err) {
+            console.error("ITAD error:", err);
+          }
+        })();
       }
     }
 
     if (settings.addCustomFunds) {
       if (
         window.location.href.startsWith(
-          "https://store.steampowered.com/steamaccount/addfunds"
+          "https://store.steampowered.com/steamaccount/addfunds",
         )
       ) {
         const element = document.querySelector("a.btnv6_green_white_innerfade");
@@ -438,7 +411,7 @@ retrieveSettings()
 
             if (value < minamount) {
               alert(
-                "Please enter a amount greater then or equal to minimum amount"
+                "Please enter a amount greater then or equal to minimum amount",
               );
               return;
             }
@@ -467,7 +440,7 @@ retrieveSettings()
     if (settings.autoSkipAgeVerification) {
       if (
         window.location.href.startsWith(
-          "https://store.steampowered.com/agecheck"
+          "https://store.steampowered.com/agecheck",
         )
       ) {
         let ageDayElement = document.getElementById("ageDay");
@@ -498,24 +471,23 @@ retrieveSettings()
           "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v0001/?appid=" +
           appId;
 
-        backgroundFetch(requestUrl)
-          .then((frespone) => {
-            let plramount = makeReadable(frespone.response.player_count);
+        backgroundFetch(requestUrl).then((frespone) => {
+          let plramount = makeReadable(frespone.response.player_count);
 
-            let appHubAppName = document.getElementById("appHubAppName");
+          let appHubAppName = document.getElementById("appHubAppName");
 
-            let paragraph = document.createElement("p");
-            paragraph.textContent = `${plramount} players currently playing`;
+          let paragraph = document.createElement("p");
+          paragraph.textContent = `${plramount} players currently playing`;
 
-            let breakLine = document.createElement("br");
+          let breakLine = document.createElement("br");
 
-            appHubAppName.parentNode.insertBefore(
-              paragraph,
-              appHubAppName.nextSibling
-            );
+          appHubAppName.parentNode.insertBefore(
+            paragraph,
+            appHubAppName.nextSibling,
+          );
 
-            paragraph.insertAdjacentElement("afterend", breakLine);
-          });
+          paragraph.insertAdjacentElement("afterend", breakLine);
+        });
       }
     }
 
@@ -526,7 +498,7 @@ retrieveSettings()
         let appId = window.location.href.match(/\/app\/(\d+)\//)[1];
 
         var dbtn = document.getElementsByClassName(
-          "game_area_already_owned_btn"
+          "game_area_already_owned_btn",
         )[0];
 
         if (dbtn != null) {
@@ -565,35 +537,34 @@ retrieveSettings()
           appId +
           ".json";
 
-        backgroundFetch(requestUrl)
-          .then((frespone) => {
-            const trending = frespone.trendingTier;
-            const tier = frespone.tier;
+        backgroundFetch(requestUrl).then((frespone) => {
+          const trending = frespone.trendingTier;
+          const tier = frespone.tier;
 
-            const reviews = document.querySelector(".user_reviews");
+          const reviews = document.querySelector(".user_reviews");
 
-            const breakline = document.createElement("br");
+          const breakline = document.createElement("br");
 
-            const tierElement = document.createElement("div");
-            tierElement.innerHTML =
-              'ProtonDB Tier: <span style="color: ' +
-              getTierColor(tier) +
-              '">' +
-              tier +
-              "</span>";
+          const tierElement = document.createElement("div");
+          tierElement.innerHTML =
+            'ProtonDB Tier: <span style="color: ' +
+            getTierColor(tier) +
+            '">' +
+            tier +
+            "</span>";
 
-            const trendingElement = document.createElement("div");
-            trendingElement.innerHTML =
-              'ProtonDB Trending: <span style="color: ' +
-              getTierColor(trending) +
-              '">' +
-              trending +
-              "</span>";
+          const trendingElement = document.createElement("div");
+          trendingElement.innerHTML =
+            'ProtonDB Trending: <span style="color: ' +
+            getTierColor(trending) +
+            '">' +
+            trending +
+            "</span>";
 
-            reviews.appendChild(breakline);
-            reviews.appendChild(tierElement);
-            reviews.appendChild(trendingElement);
-          });
+          reviews.appendChild(breakline);
+          reviews.appendChild(tierElement);
+          reviews.appendChild(trendingElement);
+        });
       }
     }
   })

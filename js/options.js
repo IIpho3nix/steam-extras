@@ -2,8 +2,9 @@ const saveOptions = (e) => {
   e.preventDefault();
 
   const settings = {};
+
   const checkboxes = document.querySelectorAll(
-    ".switch input[type='checkbox']"
+    ".switch input[type='checkbox']",
   );
 
   checkboxes.forEach((checkbox) => {
@@ -11,17 +12,15 @@ const saveOptions = (e) => {
     settings[settingName] = checkbox.checked;
   });
 
-  if (
-    typeof browser !== "undefined" &&
-    browser.storage &&
-    browser.storage.sync
-  ) {
+  // Save text inputs (API key)
+  const apiKeyInput = document.querySelector("#isthereanydealApiKey");
+  if (apiKeyInput) {
+    settings.isthereanydealApiKey = apiKeyInput.value.trim();
+  }
+
+  if (typeof browser !== "undefined" && browser.storage?.sync) {
     browser.storage.sync.set(settings);
-  } else if (
-    typeof chrome !== "undefined" &&
-    chrome.storage &&
-    chrome.storage.sync
-  ) {
+  } else if (typeof chrome !== "undefined" && chrome.storage?.sync) {
     chrome.storage.sync.set(settings);
   } else {
     alert("Browser storage API not supported");
@@ -33,8 +32,15 @@ const restoreOptions = () => {
     Object.keys(result).forEach((settingName) => {
       const toggleId = `${settingName}Toggle`;
       const toggle = document.querySelector(`#${toggleId}`);
+
       if (toggle) {
         toggle.checked = result[settingName] || false;
+        return;
+      }
+
+      const input = document.querySelector(`#${settingName}`);
+      if (input) {
+        input.value = result[settingName] || "";
       }
     });
   };
@@ -62,7 +68,6 @@ const restoreOptions = () => {
 
 document.addEventListener("DOMContentLoaded", () => {
   restoreOptions();
-  saveOptions();
 });
 
 document.querySelector("form").addEventListener("submit", saveOptions);
@@ -77,4 +82,3 @@ buttons.forEach((button) => {
     }, 200);
   });
 });
-

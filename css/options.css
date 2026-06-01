@@ -112,6 +112,56 @@ input[type="checkbox"] {
   animation: clickAnim 200ms ease-in-out;
 }
 
+.textOption {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 10px;
+  color: white;
+  font-size: 16px;
+}
+
+.textOption input[type="text"] {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgb(34, 40, 50);
+  color: white;
+  font-size: 14px;
+  outline: none;
+  transition:
+    border 0.2s,
+    background 0.2s;
+}
+
+.textOption input[type="text"]::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.textOption input[type="text"]:focus {
+  border: 1px solid #5cacef;
+  background: rgb(40, 48, 60);
+}
+
+label {
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.apiLabel {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+.apiLabel input {
+  width: 90%;
+  text-align: center;
+}
+
 @keyframes clickAnim {
   0% {
     transform: scale(1);

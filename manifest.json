@@ -13,7 +13,7 @@
     "*://steampowered.com/*",
     "*://steamcommunity.com/*",
     "*://www.protondb.com/*",
-    "*://steamdb.info/*",
+    "*://api.isthereanydeal.com/*",
     "storage",
     "contextMenus"
   ],
