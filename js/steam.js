@@ -284,155 +284,53 @@ retrieveSettings()
         const element = document.querySelector("a.btnv6_green_white_innerfade");
 
         if (element) {
-          const minamount = element.getAttribute("data-amount");
+          const minamount = parseInt(element.getAttribute("data-amount"), 10);
           const currency = element.getAttribute("data-currency");
 
           const container = document.createElement("div");
-          container.style.background =
-            "linear-gradient(to right, rgb(44, 60, 74), rgb(87, 102, 116))";
-          container.style.padding = "20px";
-          container.style.borderRadius = "6px";
-          container.style.boxShadow = "0px 0px 8px rgba(0, 0, 0, 0.6)";
-          container.style.width = "250px";
-          container.style.margin = "0 auto";
-          container.style.textAlign = "center";
+          container.style.cssText =
+            "background: linear-gradient(to right, rgb(44, 60, 74), rgb(87, 102, 116)); padding: 20px; border-radius: 6px; box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.6); width: 250px; margin: 0 auto; text-align: center;";
 
           const text = document.createElement("h1");
           text.innerText = "Add custom funds";
+          text.style.cssText = "color: #fff; font-size: 18px; margin-top: 0;";
 
-          const smallText = document.createElement("p");
-          smallText.innerHTML =
-            "Minimum Amount: " + formatCurrency(minamount) + " " + currency;
-
-          const breakline = document.createElement("br");
-
-          const input1 = document.createElement("input");
-
-          input1.addEventListener("keydown", (e) => {
-            if (!isNumericInput(e)) {
-              e.preventDefault();
-            }
-          });
-
-          input1.style.outline = "none";
-          input1.style.appearance = "none";
-          input1.style.MozAppearance = "textfield";
-          input1.placeholder = "Major Currency";
-          input1.type = "number";
-          input1.min = "0";
-          input1.step = "1";
-          input1.style.backgroundColor = "#2b4865";
-          input1.style.border = "none";
-          input1.style.padding = "10px";
-          input1.style.color = "#fff";
-          input1.style.fontSize = "16px";
-          input1.style.marginBottom = "10px";
-          input1.style.borderRadius = "4px";
-
-          const input2 = document.createElement("input");
-
-          input2.addEventListener("keydown", (e) => {
-            if (!isNumericInput(e)) {
-              e.preventDefault();
-            }
-          });
-
-          input2.addEventListener("input", (e) => {
-            const inputValue = parseInt(e.target.value, 10);
-            if (inputValue > 99) {
-              e.target.value = 99;
-            }
-          });
-
-          input2.style.outline = "none";
-          input2.style.appearance = "none";
-          input2.style.MozAppearance = "textfield";
-          input2.placeholder = "Minor Currency";
-          input2.type = "number";
-          input2.min = "0";
-          input2.step = "1";
-          input2.style.backgroundColor = "#2b4865";
-          input2.style.border = "none";
-          input2.style.padding = "10px";
-          input2.style.color = "#fff";
-          input2.style.fontSize = "16px";
-          input2.style.marginBottom = "10px";
-          input2.style.borderRadius = "4px";
-
-          const breakline2 = document.createElement("br");
+          const input = document.createElement("input");
+          input.type = "number";
+          input.step = "0.01";
+          input.placeholder = "0.00";
+          input.style.cssText =
+            "width: 80%; background: #2b4865; border: none; padding: 10px; color: #fff; margin-bottom: 10px; border-radius: 4px; font-size: 16px;";
 
           const button = document.createElement("button");
           button.textContent = "Add funds";
+          button.style.cssText =
+            "background: linear-gradient(to bottom, rgb(121, 153, 5), rgb(83, 105, 4)); color: rgb(210, 232, 133); border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px;";
 
-          const initialGradient =
-            "linear-gradient(to bottom, rgb(121, 153, 5), rgb(83, 105, 4))";
-          const hoverGradient =
-            "linear-gradient(to bottom, rgb(164, 208, 7), rgb(107, 135, 5))";
+          button.onclick = () => {
+            const total = Math.round(parseFloat(input.value) * 100);
 
-          button.style.background = initialGradient;
-
-          button.style.border = "none";
-          button.style.padding = "10px 20px";
-
-          const initialColor = "rgb(210, 232, 133)";
-          const hoverColor = "rgb(255, 255, 255)";
-
-          button.style.color = initialColor;
-
-          button.addEventListener("mouseenter", () => {
-            button.style.color = hoverColor;
-            button.style.background = hoverGradient;
-          });
-
-          button.addEventListener("mouseleave", () => {
-            button.style.color = initialColor;
-            button.style.background = initialGradient;
-          });
-
-          button.style.fontSize = "16px";
-          button.style.borderRadius = "4px";
-          button.style.cursor = "pointer";
-
-          const callAddFunds = () => {
-            const value1 = parseInt(input1.value, 10);
-            const value2 = parseInt(input2.value, 10);
-
-            if (isNaN(value1)) {
-              alert("Please enter valid positive numbers.");
-              return;
-            }
-
-            if (value1 <= 0) {
-              alert("Please enter a value greater then zero");
-              return;
-            }
-
-            const value = appendNumbers(value1, isNaN(value2) ? 0 : value2);
-
-            if (value < minamount) {
+            if (isNaN(total) || total < minamount) {
               alert(
-                "Please enter a amount greater then or equal to minimum amount",
+                "Please enter a valid amount (Minimum: " +
+                  (minamount / 100).toFixed(2) +
+                  " " +
+                  currency +
+                  ")",
               );
-              return;
+            } else {
+              addFunds(total, currency);
             }
-
-            addFunds(value, currency);
           };
 
-          button.addEventListener("click", callAddFunds);
-
           container.appendChild(text);
-          container.appendChild(smallText);
-          container.appendChild(breakline);
-          container.appendChild(input1);
-          container.appendChild(input2);
-          container.appendChild(breakline2);
+          container.appendChild(input);
           container.appendChild(button);
 
-          let pricesUser = document.getElementById("prices_user");
-          pricesUser.appendChild(container);
-        } else {
-          alert("Cannot find price's container");
+          const pricesUser = document.getElementById("prices_user");
+          if (pricesUser) {
+            pricesUser.appendChild(container);
+          }
         }
       }
     }
