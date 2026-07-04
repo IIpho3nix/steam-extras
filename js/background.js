@@ -5,35 +5,37 @@ const openNewTab = (url) => {
 
 const api = typeof browser !== "undefined" ? browser : chrome;
 
-api.browserAction.onClicked.addListener(() => {
+api.action.onClicked.addListener(() => {
   api.tabs.create({ url: "html/options.html" });
 });
 
-api.contextMenus.create({
-  id: "extensionContextMenu",
-  title: "Steam Search",
-  contexts: ["selection"],
-});
+api.runtime.onInstalled.addListener(() => {
+  api.contextMenus.create({
+    id: "extensionContextMenu",
+    title: "Steam Search",
+    contexts: ["selection"],
+  });
 
-api.contextMenus.create({
-  id: "searchSteam",
-  parentId: "extensionContextMenu",
-  title: "Search in Steam",
-  contexts: ["selection"],
-});
+  api.contextMenus.create({
+    id: "searchSteam",
+    parentId: "extensionContextMenu",
+    title: "Search in Steam",
+    contexts: ["selection"],
+  });
 
-api.contextMenus.create({
-  id: "searchSteamDB",
-  parentId: "extensionContextMenu",
-  title: "Search in SteamDB",
-  contexts: ["selection"],
-});
+  api.contextMenus.create({
+    id: "searchSteamDB",
+    parentId: "extensionContextMenu",
+    title: "Search in SteamDB",
+    contexts: ["selection"],
+  });
 
-api.contextMenus.create({
-  id: "searchProtonDB",
-  parentId: "extensionContextMenu",
-  title: "Search in ProtonDB",
-  contexts: ["selection"],
+  api.contextMenus.create({
+    id: "searchProtonDB",
+    parentId: "extensionContextMenu",
+    title: "Search in ProtonDB",
+    contexts: ["selection"],
+  });
 });
 
 api.contextMenus.onClicked.addListener((info) => {
